@@ -1,0 +1,57 @@
+version: '3.8'
+
+# ─────────────────────────────────────────────
+#  TSHIRT BOUTIQUE — Docker Compose
+#  Çalıştırmak için: docker-compose up -d
+#  Durdurmak için  : docker-compose down
+# ─────────────────────────────────────────────
+
+services:
+
+  # ── PostgreSQL Veritabanı ──────────────────
+  postgres:
+    image: postgres:16-alpine          # Hafif Alpine tabanlı resmi PostgreSQL 16
+    container_name: tshirt_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tshirt_boutique     # Veritabanı adı (application.properties ile eşleşmeli)
+      POSTGRES_USER: tshirt_user       # Kullanıcı adı
+      POSTGRES_PASSWORD: tshirt_pass   # Şifre (prod'da .env dosyasına taşı!)
+    ports:
+      - "5432:5432"                    # Host:Container port eşleşmesi
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Veri kalıcılığı (container silinse bile veriler durur)
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql  # İlk çalışmada SQL script'i çalıştır
+    networks:
+      - tshirt_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tshirt_user -d tshirt_boutique"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── pgAdmin (İsteğe Bağlı: DB GUI Aracı) ──
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: tshirt_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@tshirt.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"                      # http://localhost:5050 adresinden erişim
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tshirt_network
+
+# ── Kalıcı Veri Birimi ─────────────────────
+volumes:
+  postgres_data:
+    driver: local
+
+# ── İzole Ağ ──────────────────────────────
+networks:
+  tshirt_network:
+    driver: bridge
