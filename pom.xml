@@ -77,13 +77,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 7. LOMBOK: Getter/Setter/Builder boilerplate kodunu @Data ile ortadan kaldırır -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-
         <!-- 8. TEST: JUnit 5 + Spring Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
